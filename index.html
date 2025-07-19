@@ -103,6 +103,20 @@
                     </div>
                 </div>
 
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-2xl font-bold text-cyan-700 mb-4">Estado del Plan</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                        <div class="bg-slate-100 p-4 rounded-lg">
+                            <h3 class="text-sm font-bold uppercase text-slate-500">Fase Actual</h3>
+                            <p id="current-phase" class="text-3xl font-bold text-cyan-600">Sin Datos</p>
+                        </div>
+                        <div class="bg-slate-100 p-4 rounded-lg">
+                            <h3 class="text-sm font-bold uppercase text-slate-500">Días para la Siguiente Fase</h3>
+                            <p id="days-to-next-phase" class="text-3xl font-bold text-cyan-600">-</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid md:grid-cols-2 gap-8">
                     <div class="bg-white p-6 rounded-xl shadow-sm">
                         <h3 class="text-xl font-bold mb-4 text-center">Progreso de Pérdida de Peso (Objetivo vs. Real)</h3>
@@ -387,8 +401,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const navButtons = document.querySelectorAll('.nav-button');
             const contentSections = document.querySelectorAll('.content-section');
-            const DATA_STORAGE_KEY = 'cyclingTrainingData_v4';
-            const EVENT_DATE_KEY = 'cyclingEventDate_v4';
+            const DATA_STORAGE_KEY = 'cyclingTrainingData_v5';
+            const EVENT_DATE_KEY = 'cyclingEventDate_v5';
 
             let weightChart, volumeChart;
             let trainingData = [];
@@ -431,16 +445,54 @@
                 return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
             }
 
+            function updatePhaseInfo(daysTraining) {
+                const phaseEl = document.getElementById('current-phase');
+                const nextPhaseEl = document.getElementById('days-to-next-phase');
+                
+                const FASE1_END = 120; // 4 months * 30 days
+                const FASE2_END = 210; // FASE1_END + 3 months * 30 days
+
+                if (daysTraining === 0 || isNaN(daysTraining)) {
+                    phaseEl.textContent = 'Fase 1 (Base)';
+                    nextPhaseEl.textContent = `${FASE1_END} días`;
+                    return;
+                }
+
+                if (daysTraining <= FASE1_END) {
+                    phaseEl.textContent = 'Fase 1 (Base)';
+                    nextPhaseEl.textContent = `${FASE1_END - daysTraining} días`;
+                } else if (daysTraining <= FASE2_END) {
+                    phaseEl.textContent = 'Fase 2 (Específico)';
+                    nextPhaseEl.textContent = `${FASE2_END - daysTraining} días`;
+                } else {
+                    phaseEl.textContent = 'Fase 3 (Competitivo)';
+                    nextPhaseEl.textContent = '¡Afinando!';
+                }
+            }
+
             function updateCountdown() {
                 const eventDateStr = localStorage.getItem(EVENT_DATE_KEY);
                 const daysTrainingEl = document.getElementById('days-training');
                 const daysRemainingEl = document.getElementById('days-remaining');
                 const totalProgressEl = document.getElementById('total-progress');
 
+                let daysTraining = 0;
+
+                if (trainingData.length > 0) {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const startDate = new Date(trainingData[0].date);
+                    startDate.setHours(0,0,0,0);
+                    daysTraining = Math.max(0, Math.ceil((today - startDate) / (1000 * 60 * 60 * 24)) + 1);
+                    daysTrainingEl.textContent = daysTraining;
+                } else {
+                    daysTrainingEl.textContent = '0';
+                }
+
                 if (!eventDateStr) {
-                    daysTrainingEl.textContent = '-';
                     daysRemainingEl.textContent = '-';
                     totalProgressEl.textContent = '-';
+                    updatePhaseInfo(daysTraining);
                     return;
                 }
 
@@ -455,17 +507,13 @@
                 if (trainingData.length > 0) {
                     const startDate = new Date(trainingData[0].date);
                     startDate.setHours(0,0,0,0);
-                    const daysTraining = Math.max(0, Math.ceil((today - startDate) / (1000 * 60 * 60 * 24)) + 1);
-                    daysTrainingEl.textContent = daysTraining;
-
                     const totalDuration = Math.max(1, Math.ceil((eventDate - startDate) / (1000 * 60 * 60 * 24)));
                     const progress = Math.min(100, Math.max(0, (daysTraining / totalDuration) * 100));
                     totalProgressEl.textContent = `${progress.toFixed(0)}%`;
-
                 } else {
-                    daysTrainingEl.textContent = '0';
                     totalProgressEl.textContent = '0%';
                 }
+                updatePhaseInfo(daysTraining);
             }
 
             function updateDashboard() {
