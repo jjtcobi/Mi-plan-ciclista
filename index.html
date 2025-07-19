@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Chosen Palette: Calm Harmony (Slate, Cyan, Amber) -->
+    <!-- Application Structure Plan: Se mantiene la estructura de SPA con pestañas, pero se añade una nueva pestaña principal "Mi Progreso" que actúa como un dashboard personal. Esta pestaña contendrá un formulario de entrada de datos y una sección de visualización con gráficos y resúmenes. Esta arquitectura centraliza la interacción del usuario y la visualización de su progreso, separando claramente el 'plan' (Fases 1, 2, 3) del 'seguimiento' (Mi Progreso). El flujo de usuario es: 1. Consultar el plan en las pestañas de fase. 2. Realizar el entrenamiento. 3. Registrar los datos en "Mi Progreso". 4. Visualizar el avance y recibir feedback en la misma pestaña. -->
+    <!-- Visualization & Content Choices: 1. Formulario de Entrada: Para capturar datos diarios (peso, tipo de ejercicio, tiempo, distancia, zona, pulso). 2. Gráfico de Historial de Peso (Chart.js): Evolución del gráfico de peso para comparar el objetivo con el real. 3. Gráfico de Volumen Semanal (Chart.js): Un gráfico de barras para visualizar el tiempo y la distancia acumulada por semana, permitiendo ver la progresión del volumen. 4. Gráfico de Tiempo en Zonas (Chart.js): Un gráfico de radar o polar para mostrar la distribución del esfuerzo en las diferentes zonas cardiacas a lo largo del tiempo. 5. Tarjetas de Resumen y Sugerencias (HTML/JS): Para mostrar estadísticas clave (ej. km totales) y ofrecer consejos dinámicos simples (ej. "Has aumentado tu volumen esta semana, ¡no olvides descansar!"). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <title>Plan Interactivo con Registro: Gran Fondo 100km</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-button-active {
+            background-color: #0891b2;
+            color: white;
+        }
+        .nav-button-inactive {
+            background-color: #e2e8f0;
+            color: #334155;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .rating-star {
+            color: #d1d5db; /* gray-300 */
+            transition: color 0.2s;
+        }
+        .rating-star.selected, .rating-star:hover {
+            color: #f59e0b; /* amber-500 */
+        }
+        .rating-star:hover ~ .rating-star {
+            color: #d1d5db;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-bold text-slate-900">Plan de Entrenamiento Interactivo</h1>
+            <p class="text-lg md:text-xl text-slate-600 mt-2">Objetivo: Gran Fondo 100km y -20kg</p>
+            <p class="text-md text-cyan-700 font-medium mt-1">Un enfoque dual: Chema Arguedas + Hábitos Atómicos</p>
+        </header>
+
+        <nav class="flex flex-wrap justify-center gap-2 mb-8">
+            <button data-target="overview" class="nav-button nav-button-active font-medium py-2 px-4 rounded-lg transition-colors duration-300">Visión General</button>
+            <button data-target="progreso" class="nav-button nav-button-inactive font-medium py-2 px-4 rounded-lg transition-colors duration-300">Mi Progreso y Registro</button>
+            <button data-target="fase1" class="nav-button nav-button-inactive font-medium py-2 px-4 rounded-lg transition-colors duration-300">Fase 1: Base</button>
+            <button data-target="fase2" class="nav-button nav-button-inactive font-medium py-2 px-4 rounded-lg transition-colors duration-300">Fase 2: Específico</button>
+            <button data-target="fase3" class="nav-button nav-button-inactive font-medium py-2 px-4 rounded-lg transition-colors duration-300">Fase 3: Competitivo</button>
+            <button data-target="nutricion" class="nav-button nav-button-inactive font-medium py-2 px-4 rounded-lg transition-colors duration-300">Nutrición y Hábitos</button>
+        </nav>
+
+        <main>
+            <section id="overview" class="content-section active space-y-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                         <h2 class="text-2xl font-bold text-cyan-700">Tu Cuenta Regresiva</h2>
+                         <div class="flex items-center gap-2">
+                            <label for="event-date" class="font-medium text-slate-700">Fecha del Evento:</label>
+                            <input type="date" id="event-date" class="p-2 border rounded-lg">
+                         </div>
+                    </div>
+                    <div id="countdown-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                        <div class="bg-slate-100 p-4 rounded-lg">
+                            <h3 class="text-sm font-bold uppercase text-slate-500">Días Entrenando</h3>
+                            <p id="days-training" class="text-4xl font-bold text-cyan-600">-</p>
+                        </div>
+                        <div class="bg-slate-100 p-4 rounded-lg">
+                            <h3 class="text-sm font-bold uppercase text-slate-500">Días Restantes</h3>
+                            <p id="days-remaining" class="text-4xl font-bold text-cyan-600">-</p>
+                        </div>
+                        <div class="bg-slate-100 p-4 rounded-lg">
+                            <h3 class="text-sm font-bold uppercase text-slate-500">Progreso Total</h3>
+                            <p id="total-progress" class="text-4xl font-bold text-cyan-600">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-bold mb-4 text-center">Progreso de Pérdida de Peso (Objetivo vs. Real)</h3>
+                        <p class="text-sm text-slate-500 text-center mb-4">Visualización de la meta de pérdida de peso de 0.65kg por semana. Tus registros de peso aparecerán aquí.</p>
+                        <div class="chart-container">
+                            <canvas id="weightChart"></canvas>
+                        </div>
+                    </div>
+                     <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-bold mb-4">Tus Zonas de Entrenamiento (FC Máx.)</h3>
+                        <p class="text-sm text-slate-500 mb-4">Basado en tu Frecuencia Cardíaca Máxima (FC Máx), que debes determinar con una prueba de esfuerzo.</p>
+                        <ul class="space-y-3">
+                            <li class="p-3 bg-blue-100 rounded-lg"><strong class="text-blue-800">Z1 Regenerativo (&lt;65%):</strong> Recuperación activa.</li>
+                            <li class="p-3 bg-green-100 rounded-lg"><strong class="text-green-800">Z2 Resistencia Aeróbica (65-75%):</strong> La zona clave para quemar grasa.</li>
+                            <li class="p-3 bg-yellow-100 rounded-lg"><strong class="text-yellow-800">Z3 Tempo (75-85%):</strong> Ritmo intenso pero sostenible.</li>
+                            <li class="p-3 bg-orange-100 rounded-lg"><strong class="text-orange-800">Z4 Umbral Anaeróbico (85-92%):</strong> Esfuerzo alto, donde las piernas "queman".</li>
+                            <li class="p-3 bg-red-100 rounded-lg"><strong class="text-red-800">Z5 VO2 Máx. (&gt;92%):</strong> Esfuerzos máximos y cortos.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="progreso" class="content-section space-y-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-2xl font-bold text-cyan-700 mb-4">Registro Diario de Actividad</h2>
+                    <p class="text-slate-600 mb-4">La consistencia es la clave. Registra cada sesión para visualizar tu progreso y mantener la motivación. Tus datos se guardan localmente en tu navegador.</p>
+                    <form id="training-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <input type="date" id="date" class="p-2 border rounded-lg" required>
+                            <input type="number" step="0.1" id="weight" placeholder="Peso (kg)" class="p-2 border rounded-lg" required>
+                            <select id="exercise-type" class="p-2 border rounded-lg">
+                                <option value="ciclismo">Ciclismo</option>
+                                <option value="fuerza">Fuerza</option>
+                                <option value="descanso">Descanso</option>
+                            </select>
+                            <input type="number" id="duration" placeholder="Duración (min)" class="p-2 border rounded-lg">
+                            <input type="number" step="0.1" id="distance" placeholder="Distancia (km)" class="p-2 border rounded-lg">
+                            <select id="zone" class="p-2 border rounded-lg">
+                                <option value="">-- Zona Cardíaca --</option>
+                                <option value="Z1">Z1</option>
+                                <option value="Z2">Z2</option>
+                                <option value="Z3">Z3</option>
+                                <option value="Z4">Z4</option>
+                                <option value="Z5">Z5</option>
+                            </select>
+                            <input type="number" id="hr" placeholder="Pulso Medio (ppm)" class="p-2 border rounded-lg">
+                        </div>
+                        <textarea id="comments" placeholder="Comentarios de la sesión..." class="p-2 border rounded-lg md:col-span-2 h-24"></textarea>
+                        
+                        <div class="md:col-span-1">
+                            <label class="block mb-1 font-medium text-slate-700">Percepción del Esfuerzo (RPE)</label>
+                            <div id="rpe-rating" class="flex space-x-1 text-3xl cursor-pointer text-slate-300">
+                                <span data-value="1" class="rating-star">★</span>
+                                <span data-value="2" class="rating-star">★</span>
+                                <span data-value="3" class="rating-star">★</span>
+                                <span data-value="4" class="rating-star">★</span>
+                                <span data-value="5" class="rating-star">★</span>
+                            </div>
+                            <input type="hidden" id="rpe" value="0">
+                        </div>
+                        <div class="md:col-span-1">
+                             <label class="block mb-1 font-medium text-slate-700">Hambre / Incomodidad</label>
+                            <div id="discomfort-rating" class="flex space-x-1 text-3xl cursor-pointer text-slate-300">
+                                <span data-value="1" class="rating-star">★</span>
+                                <span data-value="2" class="rating-star">★</span>
+                                <span data-value="3" class="rating-star">★</span>
+                                <span data-value="4" class="rating-star">★</span>
+                                <span data-value="5" class="rating-star">★</span>
+                            </div>
+                            <input type="hidden" id="discomfort" value="0">
+                        </div>
+
+                        <button type="submit" class="md:col-span-2 bg-cyan-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-cyan-700 transition-colors mt-2">Registrar Sesión</button>
+                    </form>
+                    <div class="mt-4 text-right">
+                        <button id="clear-data-btn" class="text-sm text-red-500 hover:text-red-700">Borrar todos los datos</button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                     <h2 class="text-2xl font-bold text-cyan-700 mb-4">Dashboard de Progreso</h2>
+                     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2">
+                            <h3 class="text-xl font-bold mb-4 text-center">Volumen de Entrenamiento Semanal</h3>
+                            <div class="chart-container">
+                                <canvas id="volumeChart"></canvas>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold mb-4 text-center">Resumen y Sugerencias</h3>
+                            <div id="summary-section" class="space-y-4">
+                                <div class="p-4 bg-slate-100 rounded-lg">
+                                    <h4 class="font-bold">Distancia Total</h4>
+                                    <p id="total-distance" class="text-2xl text-cyan-600 font-bold">0 km</p>
+                                </div>
+                                <div class="p-4 bg-slate-100 rounded-lg">
+                                    <h4 class="font-bold">Tiempo Total</h4>
+                                    <p id="total-duration" class="text-2xl text-cyan-600 font-bold">0 hrs</p>
+                                </div>
+                                 <div class="p-4 bg-amber-100 rounded-lg">
+                                    <h4 class="font-bold text-amber-800">Sugerencia del Día</h4>
+                                    <p id="suggestion" class="text-sm text-amber-700">Registra tu primera sesión para recibir sugerencias.</p>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+
+                 <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-2xl font-bold text-cyan-700 mb-4">Historial de Sesiones</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-slate-500">
+                            <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Fecha</th>
+                                    <th scope="col" class="px-6 py-3">Tipo</th>
+                                    <th scope="col" class="px-6 py-3">Duración</th>
+                                    <th scope="col" class="px-6 py-3">Distancia</th>
+                                    <th scope="col" class="px-6 py-3">Esfuerzo</th>
+                                    <th scope="col" class="px-6 py-3">Sensación</th>
+                                    <th scope="col" class="px-6 py-3">Comentarios</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body">
+                                <!-- Rows generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="fase1" class="content-section space-y-8">
+                 <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-2xl font-bold text-cyan-700 mb-4">Fase 1: Acondicionamiento General (Meses 1-4)</h2>
+                    <p class="text-slate-600">Esta es la fase más importante. El objetivo principal es construir una base aeróbica sólida que soporte el resto de la temporada. Aquí, el volumen (horas de pedaleo) es más importante que la intensidad. Enseñaremos a nuestro cuerpo a ser más eficiente, a utilizar las grasas como combustible y a establecer los hábitos que nos sostendrán en los momentos difíciles. La paciencia y la consistencia en esta fase son la clave del éxito a largo plazo.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 items-start">
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-bold mb-4 text-center">Foco del Entrenamiento: Base Aeróbica</h3>
+                        <div class="chart-container">
+                            <canvas id="zoneChartFase1"></canvas>
+                        </div>
+                        <p class="text-sm text-slate-500 text-center mt-4">La gran mayoría del tiempo se dedica a Z2, construyendo resistencia y eficiencia en la quema de grasas. La intensidad alta es casi inexistente.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-bold mb-4">Ejemplo Semanal (Mes 1-2)</h3>
+                        <ul class="space-y-2 text-slate-700">
+                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Lunes:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🚲</span> <strong>Martes:</strong> 60 min en Z2 (cadencia alta 90-100 rpm)</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">💪</span> <strong>Miércoles:</strong> Fuerza (Sentadillas, zancadas, planchas)</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🚲</span> <strong>Jueves:</strong> 75 min en Z2</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Viernes:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🚵</span> <strong>Sábado:</strong> Salida larga 90-120 min en Z1-Z2 (terreno llano)</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🧘</span> <strong>Domingo:</strong> Opcional: 60 min en Z1 o descanso</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="fase2" class="content-section space-y-8">
+                 <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-2xl font-bold text-cyan-700 mb-4">Fase 2: Preparatorio Específico (Meses 5-7)</h2>
+                    <p class="text-slate-600">Con una base sólida construida, es hora de introducir la calidad. En esta fase, el objetivo es aumentar la intensidad para mejorar cualidades específicas necesarias para la prueba, como la fuerza en subida y la capacidad de mantener ritmos altos. El volumen de entrenamiento se estabiliza o incluso se reduce ligeramente para permitir que el cuerpo asimile estos esfuerzos más exigentes y evite el sobreentrenamiento.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 items-start">
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-bold mb-4 text-center">Foco del Entrenamiento: Calidad e Intensidad</h3>
+                        <div class="chart-container">
+                            <canvas id="zoneChartFase2"></canvas>
+                        </div>
+                         <p class="text-sm text-slate-500 text-center mt-4">Aumenta significativamente el tiempo en Z3 (Tempo) y Z4 (Umbral), donde se producen las mejoras de rendimiento para la prueba.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-bold mb-4">Ejemplo Semanal (Mes 5-6)</h3>
+                        <ul class="space-y-2 text-slate-700">
+                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Lunes:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🚲</span> <strong>Martes:</strong> 90 min con 2x15 min en Z3 (Tempo)</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">💪</span> <strong>Miércoles:</strong> Fuerza Específica (Pliometría, potencia)</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">📈</span> <strong>Jueves:</strong> 75 min con Fuerza-Resistencia en subida (4x6 min en Z3/Z4 bajo, cadencia baja)</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Viernes:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🚵</span> <strong>Sábado:</strong> Salida larga 3-4 horas, incluyendo puertos en Z3</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🧘</span> <strong>Domingo:</strong> 60-90 min suaves en Z1</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="fase3" class="content-section space-y-8">
+                 <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-2xl font-bold text-cyan-700 mb-4">Fase 3: Competitivo y Puesta a Punto (Mes 8)</h2>
+                    <p class="text-slate-600">El trabajo duro está hecho. Esta última fase, conocida como "tapering" o puesta a punto, es crucial para llegar a la línea de salida en el punto máximo de forma. El secreto consiste en reducir drásticamente el volumen de entrenamiento para permitir que el cuerpo se recupere completamente de la fatiga acumulada, mientras se mantienen pequeños toques de intensidad para conservar la "chispa" y las adaptaciones ganadas.</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 items-start">
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-bold mb-4 text-center">Foco del Entrenamiento: Recuperación y Afinamiento</h3>
+                        <div class="chart-container">
+                            <canvas id="zoneChartFase3"></canvas>
+                        </div>
+                        <p class="text-sm text-slate-500 text-center mt-4">El volumen total disminuye drásticamente. El entrenamiento se centra en sesiones cortas y suaves, con breves toques de intensidad para llegar descansado pero activo.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-bold mb-4">Ejemplo Semana Pre-Prueba</h3>
+                        <ul class="space-y-2 text-slate-700">
+                           <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Lunes:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🚲</span> <strong>Martes:</strong> 45 min suaves (Z1) con 3-4x1 min en Z4</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Miércoles:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🚲</span> <strong>Jueves:</strong> 30 min muy suaves (Z1)</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Viernes:</strong> Descanso total o 20 min de pedaleo suave</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🏆</span> <strong>Sábado:</strong> ¡EL GRAN DÍA!</li>
+                            <li class="flex items-center gap-3"><span class="text-xl">🎉</span> <strong>Domingo:</strong> Descanso y celebración</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="nutricion" class="content-section space-y-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h2 class="text-2xl font-bold text-cyan-700 mb-4">Nutrición y Hábitos: Los Pilares del Éxito</h2>
+                    <p class="text-slate-600">El entrenamiento te pone en forma, pero la nutrición y los hábitos determinan si realmente alcanzarás tus metas. Perder peso mientras se mejora el rendimiento es un equilibrio delicado que requiere disciplina y estrategia. Al mismo tiempo, construir los hábitos correctos hará que el proceso sea más fácil y sostenible, convirtiendo el esfuerzo en una parte natural de tu vida.</p>
+                </div>
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <div class="space-y-8">
+                        <div class="bg-white p-6 rounded-xl shadow-sm">
+                            <h3 class="text-xl font-bold mb-4">Principios de Nutrición (Chema Arguedas)</h3>
+                            <ul class="space-y-4">
+                                <li class="flex items-start gap-4">
+                                    <span class="text-2xl pt-1">🍽️</span>
+                                    <div>
+                                        <h4 class="font-bold">Déficit Calórico Sostenible</h4>
+                                        <p class="text-slate-600 text-sm">Apunta a -500 kcal/día para una pérdida de peso saludable. Combina una dieta variada con 5 comidas pequeñas al día para mantener el metabolismo activo.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <span class="text-2xl pt-1">💧</span>
+                                    <div>
+                                        <h4 class="font-bold">Hidratación Constante</h4>
+                                        <p class="text-slate-600 text-sm">Bebe 2-3 litros de agua diarios. En entrenamientos, un bidón de agua y otro de sales por hora es una buena pauta.</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-4">
+                                    <span class="text-2xl pt-1">🔋</span>
+                                    <div>
+                                        <h4 class="font-bold">Energía Inteligente</h4>
+                                        <p class="text-slate-600 text-sm">Come carbohidratos antes y después de los entrenamientos intensos. Durante las salidas largas, practica tu estrategia de carrera comiendo una barrita o gel cada 60-90 minutos.</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                         <div class="bg-white p-6 rounded-xl shadow-sm">
+                            <h3 class="text-xl font-bold mb-4">La Meseta del Potencial Latente</h3>
+                            <p class="text-slate-600">Habrá semanas en que la báscula no se mueva. ¡No te desanimes! Según James Clear, tus buenos hábitos están acumulando mejoras que aún no son visibles. La clave es la consistencia. Confía en el proceso y sigue sumando "votos" para tu nueva identidad de persona activa y saludable.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="text-xl font-bold mb-4">Las 4 Leyes de los Hábitos Atómicos (James Clear)</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-green-600">1. Hacerlo Obvio</h4>
+                                <p class="text-slate-600 text-sm">Prepara tu entorno para el éxito. Deja la ropa de ciclismo lista la noche anterior. Pon una jarra de agua en tu escritorio. Haz que la señal para empezar sea imposible de ignorar.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-blue-600">2. Hacerlo Atractivo</h4>
+                                <p class="text-slate-600 text-sm">Asocia tus nuevos hábitos con algo que te guste. ¿Haces rodillo? Solo podrás ver tu serie favorita mientras pedaleas. Esto convierte el "esfuerzo" en una "recompensa".</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-yellow-600">3. Hacerlo Sencillo</h4>
+                                <p class="text-slate-600 text-sm">Reduce la fricción al máximo. Usa la "regla de los 2 minutos": ¿sin ganas de entrenar? Solo vístete y súbete a la bici por 2 minutos. El inicio es lo más difícil. Prepara tus comidas saludables el domingo (Meal Prep).</p>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-purple-600">4. Hacerlo Satisfactorio</h4>
+                                <p class="text-slate-600 text-sm">Date una gratificación inmediata. Marca con una gran X en un calendario cada día que entrenes. Ver la cadena de "X" crecer es muy motivador. Registra tu peso semanalmente para ver la tendencia.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navButtons = document.querySelectorAll('.nav-button');
+            const contentSections = document.querySelectorAll('.content-section');
+            const DATA_STORAGE_KEY = 'cyclingTrainingData_v4';
+            const EVENT_DATE_KEY = 'cyclingEventDate_v4';
+
+            let weightChart, volumeChart;
+            let trainingData = [];
+
+            function saveData() {
+                localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(trainingData));
+            }
+
+            function loadData() {
+                const savedData = localStorage.getItem(DATA_STORAGE_KEY);
+                if (savedData) {
+                    trainingData = JSON.parse(savedData);
+                }
+                const savedEventDate = localStorage.getItem(EVENT_DATE_KEY);
+                if (savedEventDate) {
+                    document.getElementById('event-date').value = savedEventDate;
+                }
+                updateDashboard();
+            }
+
+            function switchTab(targetId) {
+                navButtons.forEach(btn => {
+                    btn.classList.toggle('nav-button-active', btn.dataset.target === targetId);
+                    btn.classList.toggle('nav-button-inactive', btn.dataset.target !== targetId);
+                });
+                contentSections.forEach(section => {
+                    section.classList.toggle('active', section.id === targetId);
+                });
+            }
+            
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => switchTab(button.dataset.target));
+            });
+
+            function getWeekNumber(d) {
+                d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+                var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+                var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+                return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+            }
+
+            function updateCountdown() {
+                const eventDateStr = localStorage.getItem(EVENT_DATE_KEY);
+                const daysTrainingEl = document.getElementById('days-training');
+                const daysRemainingEl = document.getElementById('days-remaining');
+                const totalProgressEl = document.getElementById('total-progress');
+
+                if (!eventDateStr) {
+                    daysTrainingEl.textContent = '-';
+                    daysRemainingEl.textContent = '-';
+                    totalProgressEl.textContent = '-';
+                    return;
+                }
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const eventDate = new Date(eventDateStr);
+                eventDate.setHours(0,0,0,0);
+
+                const daysRemaining = Math.max(0, Math.ceil((eventDate - today) / (1000 * 60 * 60 * 24)));
+                daysRemainingEl.textContent = daysRemaining;
+
+                if (trainingData.length > 0) {
+                    const startDate = new Date(trainingData[0].date);
+                    startDate.setHours(0,0,0,0);
+                    const daysTraining = Math.max(0, Math.ceil((today - startDate) / (1000 * 60 * 60 * 24)) + 1);
+                    daysTrainingEl.textContent = daysTraining;
+
+                    const totalDuration = Math.max(1, Math.ceil((eventDate - startDate) / (1000 * 60 * 60 * 24)));
+                    const progress = Math.min(100, Math.max(0, (daysTraining / totalDuration) * 100));
+                    totalProgressEl.textContent = `${progress.toFixed(0)}%`;
+
+                } else {
+                    daysTrainingEl.textContent = '0';
+                    totalProgressEl.textContent = '0%';
+                }
+            }
+
+            function updateDashboard() {
+                updateCountdown();
+                renderHistoryTable();
+                if (!trainingData.length) {
+                    document.getElementById('total-distance').textContent = `0 km`;
+                    document.getElementById('total-duration').textContent = `0 hrs`;
+                    document.getElementById('suggestion').textContent = `Registra tu primera sesión para recibir sugerencias.`;
+                    if(weightChart) updateWeightChart();
+                    if(volumeChart) updateVolumeChart();
+                    return;
+                };
+
+                const totalDistance = trainingData.reduce((sum, item) => sum + (item.distance || 0), 0);
+                const totalDuration = trainingData.reduce((sum, item) => sum + (item.duration || 0), 0);
+                document.getElementById('total-distance').textContent = `${totalDistance.toFixed(1)} km`;
+                document.getElementById('total-duration').textContent = `${(totalDuration / 60).toFixed(1)} hrs`;
+
+                const lastSession = trainingData[trainingData.length - 1];
+                let suggestionText = "¡Sigue así! La consistencia es clave.";
+                if (lastSession.type === 'descanso') {
+                    suggestionText = "¡Buen descanso! La recuperación es parte fundamental del entrenamiento.";
+                } else if (lastSession.rpe >= 4) {
+                     suggestionText = "Sesión muy exigente. Asegúrate de hidratarte y nutrirte bien para una óptima recuperación.";
+                } else if (lastSession.discomfort >= 4) {
+                    suggestionText = "Sensación de incomodidad alta. Presta atención a tu cuerpo. Quizás necesites un día de recuperación activa.";
+                } else if (trainingData.length > 1) {
+                    const weeklyData = getWeeklyData();
+                    const weeks = Object.keys(weeklyData).sort();
+                    if (weeks.length > 1) {
+                        const currentWeekKey = weeks[weeks.length-1];
+                        const prevWeekKey = weeks[weeks.length-2];
+                        if (weeklyData[currentWeekKey].duration > (weeklyData[prevWeekKey].duration || 0) * 1.15) {
+                             suggestionText = "Has aumentado significativamente tu volumen esta semana. Escucha a tu cuerpo y prioriza el descanso.";
+                        }
+                    }
+                }
+                document.getElementById('suggestion').textContent = suggestionText;
+
+                updateWeightChart();
+                updateVolumeChart();
+            }
+            
+            function getWeeklyData() {
+                 return trainingData.reduce((acc, session) => {
+                    if (session.type !== 'ciclismo' && session.type !== 'fuerza') return acc;
+                    const week = getWeekNumber(new Date(session.date));
+                    if (!acc[week]) {
+                        acc[week] = { distance: 0, duration: 0 };
+                    }
+                    acc[week].distance += session.distance || 0;
+                    acc[week].duration += session.duration || 0;
+                    return acc;
+                }, {});
+            }
+
+            function updateWeightChart() {
+                const realWeightData = trainingData
+                    .filter(d => d.weight)
+                    .map(d => ({ x: d.date, y: d.weight }));
+
+                weightChart.data.datasets[1].data = realWeightData;
+                weightChart.update();
+            }
+
+            function updateVolumeChart() {
+                const weeklyData = getWeeklyData();
+                const labels = Object.keys(weeklyData).sort();
+                const distanceData = labels.map(week => weeklyData[week].distance);
+                const durationData = labels.map(week => weeklyData[week].duration);
+                
+                volumeChart.data.labels = labels;
+                volumeChart.data.datasets[0].data = distanceData;
+                volumeChart.data.datasets[1].data = durationData;
+                volumeChart.update();
+            }
+            
+            function renderHistoryTable() {
+                const tableBody = document.getElementById('history-table-body');
+                tableBody.innerHTML = '';
+                if (trainingData.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="7" class="text-center p-4">Aún no hay sesiones registradas.</td></tr>`;
+                    return;
+                }
+
+                const reversedData = [...trainingData].reverse();
+                reversedData.forEach(session => {
+                    const row = document.createElement('tr');
+                    row.className = 'bg-white border-b';
+                    row.innerHTML = `
+                        <td class="px-6 py-4">${session.date}</td>
+                        <td class="px-6 py-4 capitalize">${session.type}</td>
+                        <td class="px-6 py-4">${session.duration > 0 ? session.duration + ' min' : '-'}</td>
+                        <td class="px-6 py-4">${session.distance > 0 ? session.distance + ' km' : '-'}</td>
+                        <td class="px-6 py-4 text-amber-500">${'★'.repeat(session.rpe)}${'☆'.repeat(5 - session.rpe)}</td>
+                        <td class="px-6 py-4 text-amber-500">${'★'.repeat(session.discomfort)}${'☆'.repeat(5 - session.discomfort)}</td>
+                        <td class="px-6 py-4 text-xs">${session.comments || '-'}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            function setupRating(containerId) {
+                const container = document.getElementById(containerId);
+                const stars = container.querySelectorAll('.rating-star');
+                const hiddenInput = container.nextElementSibling;
+
+                container.addEventListener('click', e => {
+                    if (e.target.matches('.rating-star')) {
+                        const value = e.target.dataset.value;
+                        hiddenInput.value = value;
+                        stars.forEach(star => {
+                            star.classList.toggle('selected', star.dataset.value <= value);
+                        });
+                    }
+                });
+
+                 container.addEventListener('mouseover', e => {
+                    if (e.target.matches('.rating-star')) {
+                        const value = e.target.dataset.value;
+                        stars.forEach(star => {
+                           star.style.color = star.dataset.value <= value ? '#f59e0b' : '#d1d5db';
+                        });
+                    }
+                });
+
+                container.addEventListener('mouseout', () => {
+                    const value = hiddenInput.value;
+                     stars.forEach(star => {
+                        star.style.color = star.dataset.value <= value ? '#f59e0b' : '#d1d5db';
+                    });
+                });
+            }
+
+            setupRating('rpe-rating');
+            setupRating('discomfort-rating');
+
+
+            document.getElementById('training-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const session = {
+                    date: document.getElementById('date').value,
+                    weight: parseFloat(document.getElementById('weight').value),
+                    type: document.getElementById('exercise-type').value,
+                    duration: parseInt(document.getElementById('duration').value) || 0,
+                    distance: parseFloat(document.getElementById('distance').value) || 0,
+                    zone: document.getElementById('zone').value,
+                    hr: parseInt(document.getElementById('hr').value) || 0,
+                    comments: document.getElementById('comments').value,
+                    rpe: parseInt(document.getElementById('rpe').value) || 0,
+                    discomfort: parseInt(document.getElementById('discomfort').value) || 0,
+                };
+                trainingData.push(session);
+                trainingData.sort((a, b) => new Date(a.date) - new Date(b.date));
+                saveData();
+                this.reset();
+                document.getElementById('date').valueAsDate = new Date();
+                document.querySelectorAll('.rating-star').forEach(s => {
+                    s.classList.remove('selected');
+                    s.style.color = '#d1d5db';
+                });
+                document.getElementById('rpe').value = 0;
+                document.getElementById('discomfort').value = 0;
+                updateDashboard();
+            });
+
+            document.getElementById('clear-data-btn').addEventListener('click', () => {
+                if (window.confirm('¿Estás seguro de que quieres borrar todos tus datos de entrenamiento? Esta acción no se puede deshacer.')) {
+                    localStorage.removeItem(DATA_STORAGE_KEY);
+                    trainingData = [];
+                    updateDashboard();
+                }
+            });
+
+            document.getElementById('event-date').addEventListener('change', (e) => {
+                localStorage.setItem(EVENT_DATE_KEY, e.target.value);
+                updateCountdown();
+            });
+            
+            function initializeCharts() {
+                const initialWeight = 100;
+                const weeklyLoss = 0.65;
+                const weeks = 34;
+                const weightLabels = Array.from({ length: weeks + 1 }, (_, i) => {
+                    const d = new Date();
+                    d.setDate(d.getDate() + i * 7);
+                    return d.toISOString().split('T')[0];
+                });
+                const weightData = Array.from({ length: weeks + 1 }, (_, i) => (initialWeight - (i * weeklyLoss)).toFixed(1));
+
+                const weightCtx = document.getElementById('weightChart').getContext('2d');
+                weightChart = new Chart(weightCtx, {
+                    type: 'line',
+                    data: {
+                        labels: weightLabels,
+                        datasets: [{
+                            label: 'Peso Objetivo (kg)',
+                            data: weightData,
+                            borderColor: '#0891b2',
+                            backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                            fill: true,
+                            tension: 0.1
+                        }, {
+                            label: 'Peso Real (kg)',
+                            data: [],
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            fill: false,
+                            tension: 0.1
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, 
+                        scales: { 
+                            y: { beginAtZero: false, title: { display: true, text: 'Peso (kg)' }}, 
+                            x: { type: 'time', time: { unit: 'week' }, title: { display: true, text: 'Fecha' }}
+                        }
+                    }
+                });
+
+                const volumeCtx = document.getElementById('volumeChart').getContext('2d');
+                volumeChart = new Chart(volumeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Distancia Semanal (km)',
+                            data: [],
+                            backgroundColor: '#0891b2',
+                            yAxisID: 'y'
+                        }, {
+                            label: 'Duración Semanal (min)',
+                            data: [],
+                            backgroundColor: '#a5f3fc',
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { stacked: false, title: { display: true, text: 'Semana' } },
+                            y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Distancia (km)' }},
+                            y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Duración (min)' }}
+                        }
+                    }
+                });
+
+                const zoneChartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: (c) => `${c.label}: ${c.parsed}%` }}}};
+                const zoneColors = ['#a5f3fc', '#fcd34d', '#fb923c', '#f87171'];
+                
+                new Chart(document.getElementById('zoneChartFase1').getContext('2d'), { type: 'doughnut', data: { labels: ['Z1-Z2 (Base)', 'Fuerza/Otros'], datasets: [{ data: [90, 10], backgroundColor: zoneColors, borderColor: '#ffffff' }] }, options: zoneChartOptions });
+                new Chart(document.getElementById('zoneChartFase2').getContext('2d'), { type: 'doughnut', data: { labels: ['Z1-Z2', 'Z3 (Tempo)', 'Z4 (Umbral)'], datasets: [{ data: [40, 45, 15], backgroundColor: zoneColors, borderColor: '#ffffff' }] }, options: zoneChartOptions });
+                new Chart(document.getElementById('zoneChartFase3').getContext('2d'), { type: 'doughnut', data: { labels: ['Z1 (Recuperación)', 'Toques de Intensidad'], datasets: [{ data: [85, 15], backgroundColor: zoneColors, borderColor: '#ffffff' }] }, options: zoneChartOptions });
+            }
+            
+            document.getElementById('date').valueAsDate = new Date();
+            initializeCharts();
+            loadData();
+        });
+    </script>
+</body>
+</html>
