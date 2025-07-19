@@ -11,6 +11,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -97,7 +98,7 @@
             <section id="overview" class="content-section active space-y-8">
                 <div class="bg-white p-6 rounded-xl shadow-sm">
                     <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-                         <h2 class="text-2xl font-bold text-cyan-700">Tu Cuenta Regresiva</h2>
+                         <h2 class="text-2xl font-bold text-cyan-700 flex items-center gap-2"><i data-lucide="calendar-heart"></i> Tu Cuenta Regresiva</h2>
                          <div class="flex items-center gap-2">
                             <label for="event-date" class="font-medium text-slate-700">Fecha del Evento:</label>
                             <input type="date" id="event-date" class="p-2 border rounded-lg">
@@ -105,22 +106,22 @@
                     </div>
                     <div id="countdown-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                         <div class="bg-slate-100 p-4 rounded-lg">
-                            <h3 class="text-sm font-bold uppercase text-slate-500">Días Entrenando</h3>
+                            <h3 class="text-sm font-bold uppercase text-slate-500 flex items-center justify-center gap-1"><i data-lucide="trending-up" class="w-4 h-4"></i>Días Entrenando</h3>
                             <p id="days-training" class="text-4xl font-bold text-cyan-600">-</p>
                         </div>
                         <div class="bg-slate-100 p-4 rounded-lg">
-                            <h3 class="text-sm font-bold uppercase text-slate-500">Días Restantes</h3>
+                            <h3 class="text-sm font-bold uppercase text-slate-500 flex items-center justify-center gap-1"><i data-lucide="flag" class="w-4 h-4"></i>Días Restantes</h3>
                             <p id="days-remaining" class="text-4xl font-bold text-cyan-600">-</p>
                         </div>
                         <div class="bg-slate-100 p-4 rounded-lg">
-                            <h3 class="text-sm font-bold uppercase text-slate-500">Progreso Total</h3>
+                            <h3 class="text-sm font-bold uppercase text-slate-500 flex items-center justify-center gap-1"><i data-lucide="pie-chart" class="w-4 h-4"></i>Progreso Total</h3>
                             <p id="total-progress" class="text-4xl font-bold text-cyan-600">-</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl shadow-sm">
-                    <h2 class="text-2xl font-bold text-cyan-700 mb-4">Estado del Plan</h2>
+                    <h2 class="text-2xl font-bold text-cyan-700 mb-4 flex items-center gap-2"><i data-lucide="clipboard-list"></i> Estado del Plan</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                         <div class="bg-slate-100 p-4 rounded-lg">
                             <h3 class="text-sm font-bold uppercase text-slate-500">Fase Actual</h3>
@@ -134,7 +135,7 @@
                 </div>
 
                 <div class="bg-white p-6 rounded-xl shadow-sm">
-                    <h2 class="text-2xl font-bold text-cyan-700 mb-4">Próxima Sesión Sugerida</h2>
+                    <h2 class="text-2xl font-bold text-cyan-700 mb-4 flex items-center gap-2"><i data-lucide="arrow-down-right-square"></i> Próxima Sesión Sugerida</h2>
                     <div id="next-session-container" class="space-y-2">
                         <div class="bg-slate-100 p-4 rounded-lg">
                             <h3 id="next-session-title" class="text-lg font-bold text-slate-800">Calculando...</h3>
@@ -149,14 +150,14 @@
 
                 <div class="grid md:grid-cols-2 gap-8">
                     <div class="bg-white p-6 rounded-xl shadow-sm">
-                        <h3 class="text-xl font-bold mb-4 text-center">Progreso de Pérdida de Peso (Objetivo vs. Real)</h3>
-                        <p class="text-sm text-slate-500 text-center mb-4">Visualización de la meta de pérdida de peso de 0.65kg por semana. Tus registros de peso aparecerán aquí.</p>
+                        <h3 class="text-xl font-bold mb-4 text-center flex items-center justify-center gap-2"><i data-lucide="line-chart"></i> Progreso de Pérdida de Peso</h3>
+                        <p class="text-sm text-slate-500 text-center mb-4">Visualización de la meta de pérdida de peso. Tus registros de peso aparecerán aquí.</p>
                         <div class="chart-container">
                             <canvas id="weightChart"></canvas>
                         </div>
                     </div>
                      <div class="bg-white p-6 rounded-xl shadow-sm">
-                        <h3 class="text-xl font-bold mb-4">Distribución del Tiempo en Zonas</h3>
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2"><i data-lucide="activity"></i> Distribución del Tiempo en Zonas</h3>
                         <p class="text-sm text-slate-500 mb-4">Progreso total del tiempo de entrenamiento en cada zona cardíaca.</p>
                         <ul class="space-y-3">
                             <li id="zone-Z1" class="p-3 bg-blue-100 rounded-lg zone-progress-bar-container">
@@ -201,7 +202,7 @@
             
             <section id="progreso" class="content-section space-y-8">
                 <div class="bg-white p-6 rounded-xl shadow-sm">
-                    <h2 class="text-2xl font-bold text-cyan-700 mb-4">Registro Diario de Actividad</h2>
+                    <h2 class="text-2xl font-bold text-cyan-700 mb-4 flex items-center gap-2"><i data-lucide="edit"></i> Registro Diario de Actividad</h2>
                     <p class="text-slate-600 mb-4">La consistencia es la clave. Registra cada sesión para visualizar tu progreso y mantener la motivación. Tus datos se guardan localmente en tu navegador.</p>
                     <form id="training-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -257,7 +258,7 @@
                 </div>
 
                 <div class="bg-white p-6 rounded-xl shadow-sm">
-                     <h2 class="text-2xl font-bold text-cyan-700 mb-4">Dashboard de Progreso</h2>
+                     <h2 class="text-2xl font-bold text-cyan-700 mb-4 flex items-center gap-2"><i data-lucide="layout-dashboard"></i> Dashboard de Progreso</h2>
                      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <div class="lg:col-span-2">
                             <h3 class="text-xl font-bold mb-4 text-center">Volumen de Entrenamiento Semanal</h3>
@@ -269,15 +270,15 @@
                             <h3 class="text-xl font-bold mb-4 text-center">Resumen y Sugerencias</h3>
                             <div id="summary-section" class="space-y-4">
                                 <div class="p-4 bg-slate-100 rounded-lg">
-                                    <h4 class="font-bold">Distancia Total</h4>
+                                    <h4 class="font-bold flex items-center gap-2"><i data-lucide="route" class="w-5 h-5"></i> Distancia Total</h4>
                                     <p id="total-distance" class="text-2xl text-cyan-600 font-bold">0 km</p>
                                 </div>
                                 <div class="p-4 bg-slate-100 rounded-lg">
-                                    <h4 class="font-bold">Tiempo Total</h4>
+                                    <h4 class="font-bold flex items-center gap-2"><i data-lucide="timer" class="w-5 h-5"></i> Tiempo Total</h4>
                                     <p id="total-duration" class="text-2xl text-cyan-600 font-bold">0 hrs</p>
                                 </div>
                                  <div class="p-4 bg-amber-100 rounded-lg">
-                                    <h4 class="font-bold text-amber-800">Sugerencia del Día</h4>
+                                    <h4 class="font-bold text-amber-800 flex items-center gap-2"><i data-lucide="lightbulb" class="w-5 h-5"></i> Sugerencia del Día</h4>
                                     <p id="suggestion" class="text-sm text-amber-700">Registra tu primera sesión para recibir sugerencias.</p>
                                 </div>
                             </div>
@@ -286,7 +287,7 @@
                 </div>
 
                  <div class="bg-white p-6 rounded-xl shadow-sm">
-                    <h2 class="text-2xl font-bold text-cyan-700 mb-4">Historial de Sesiones</h2>
+                    <h2 class="text-2xl font-bold text-cyan-700 mb-4 flex items-center gap-2"><i data-lucide="history"></i> Historial de Sesiones</h2>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left text-slate-500">
                             <thead class="text-xs text-slate-700 uppercase bg-slate-100">
@@ -324,13 +325,13 @@
                     <div class="bg-white p-6 rounded-xl shadow-sm">
                         <h3 class="text-xl font-bold mb-4">Ejemplo Semanal (Mes 1-2)</h3>
                         <ul class="space-y-2 text-slate-700">
-                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Lunes:</strong> Descanso</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🚲</span> <strong>Martes:</strong> 60 min en Z2 (cadencia alta 90-100 rpm)</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">💪</span> <strong>Miércoles:</strong> Fuerza (Sentadillas, zancadas, planchas)</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🚲</span> <strong>Jueves:</strong> 75 min en Z2</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Viernes:</strong> Descanso</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🚵</span> <strong>Sábado:</strong> Salida larga 90-120 min en Z1-Z2 (terreno llano)</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🧘</span> <strong>Domingo:</strong> Opcional: 60 min en Z1 o descanso</li>
+                            <li class="flex items-center gap-3"><i data-lucide="bed-double" class="text-slate-500"></i> <strong>Lunes:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><i data-lucide="bike" class="text-slate-500"></i> <strong>Martes:</strong> 60 min en Z2 (cadencia alta 90-100 rpm)</li>
+                            <li class="flex items-center gap-3"><i data-lucide="dumbbell" class="text-slate-500"></i> <strong>Miércoles:</strong> Fuerza (Sentadillas, zancadas, planchas)</li>
+                            <li class="flex items-center gap-3"><i data-lucide="bike" class="text-slate-500"></i> <strong>Jueves:</strong> 75 min en Z2</li>
+                            <li class="flex items-center gap-3"><i data-lucide="bed-double" class="text-slate-500"></i> <strong>Viernes:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><i data-lucide="mountain" class="text-slate-500"></i> <strong>Sábado:</strong> Salida larga 90-120 min en Z1-Z2 (terreno llano)</li>
+                            <li class="flex items-center gap-3"><i data-lucide="sofa" class="text-slate-500"></i> <strong>Domingo:</strong> Opcional: 60 min en Z1 o descanso</li>
                         </ul>
                     </div>
                 </div>
@@ -352,13 +353,13 @@
                     <div class="bg-white p-6 rounded-xl shadow-sm">
                         <h3 class="text-xl font-bold mb-4">Ejemplo Semanal (Mes 5-6)</h3>
                         <ul class="space-y-2 text-slate-700">
-                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Lunes:</strong> Descanso</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🚲</span> <strong>Martes:</strong> 90 min con 2x15 min en Z3 (Tempo)</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">💪</span> <strong>Miércoles:</strong> Fuerza Específica (Pliometría, potencia)</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">📈</span> <strong>Jueves:</strong> 75 min con Fuerza-Resistencia en subida (4x6 min en Z3/Z4 bajo, cadencia baja)</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Viernes:</strong> Descanso</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🚵</span> <strong>Sábado:</strong> Salida larga 3-4 horas, incluyendo puertos en Z3</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🧘</span> <strong>Domingo:</strong> 60-90 min suaves en Z1</li>
+                            <li class="flex items-center gap-3"><i data-lucide="bed-double" class="text-slate-500"></i> <strong>Lunes:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><i data-lucide="bike" class="text-slate-500"></i> <strong>Martes:</strong> 90 min con 2x15 min en Z3 (Tempo)</li>
+                            <li class="flex items-center gap-3"><i data-lucide="dumbbell" class="text-slate-500"></i> <strong>Miércoles:</strong> Fuerza Específica (Pliometría, potencia)</li>
+                            <li class="flex items-center gap-3"><i data-lucide="trending-up" class="text-slate-500"></i> <strong>Jueves:</strong> 75 min con Fuerza-Resistencia en subida</li>
+                            <li class="flex items-center gap-3"><i data-lucide="bed-double" class="text-slate-500"></i> <strong>Viernes:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><i data-lucide="mountain" class="text-slate-500"></i> <strong>Sábado:</strong> Salida larga 3-4 horas, incluyendo puertos en Z3</li>
+                            <li class="flex items-center gap-3"><i data-lucide="sofa" class="text-slate-500"></i> <strong>Domingo:</strong> 60-90 min suaves en Z1</li>
                         </ul>
                     </div>
                 </div>
@@ -380,13 +381,13 @@
                     <div class="bg-white p-6 rounded-xl shadow-sm">
                         <h3 class="text-xl font-bold mb-4">Ejemplo Semana Pre-Prueba</h3>
                         <ul class="space-y-2 text-slate-700">
-                           <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Lunes:</strong> Descanso</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🚲</span> <strong>Martes:</strong> 45 min suaves (Z1) con 3-4x1 min en Z4</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Miércoles:</strong> Descanso</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🚲</span> <strong>Jueves:</strong> 30 min muy suaves (Z1)</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🛌</span> <strong>Viernes:</strong> Descanso total o 20 min de pedaleo suave</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🏆</span> <strong>Sábado:</strong> ¡EL GRAN DÍA!</li>
-                            <li class="flex items-center gap-3"><span class="text-xl">🎉</span> <strong>Domingo:</strong> Descanso y celebración</li>
+                           <li class="flex items-center gap-3"><i data-lucide="bed-double" class="text-slate-500"></i> <strong>Lunes:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><i data-lucide="zap" class="text-slate-500"></i> <strong>Martes:</strong> 45 min suaves (Z1) con 3-4x1 min en Z4</li>
+                            <li class="flex items-center gap-3"><i data-lucide="bed-double" class="text-slate-500"></i> <strong>Miércoles:</strong> Descanso</li>
+                            <li class="flex items-center gap-3"><i data-lucide="bike" class="text-slate-500"></i> <strong>Jueves:</strong> 30 min muy suaves (Z1)</li>
+                            <li class="flex items-center gap-3"><i data-lucide="bed-double" class="text-slate-500"></i> <strong>Viernes:</strong> Descanso total o 20 min de pedaleo suave</li>
+                            <li class="flex items-center gap-3"><i data-lucide="award" class="text-slate-500"></i> <strong>Sábado:</strong> ¡EL GRAN DÍA!</li>
+                            <li class="flex items-center gap-3"><i data-lucide="party-popper" class="text-slate-500"></i> <strong>Domingo:</strong> Descanso y celebración</li>
                         </ul>
                     </div>
                 </div>
@@ -561,7 +562,7 @@
                 const FASE1_END = 120; // 4 months * 30 days
                 const FASE2_END = 210; // FASE1_END + 3 months * 30 days
                 
-                if (daysTraining <= FASE1_END) return 'fase1';
+                if (isNaN(daysTraining) || daysTraining <= FASE1_END) return 'fase1';
                 if (daysTraining <= FASE2_END) return 'fase2';
                 return 'fase3';
             }
@@ -920,6 +921,7 @@
             }
             
             document.getElementById('date').valueAsDate = new Date();
+            lucide.createIcons();
             initializeCharts();
             loadData();
         });
