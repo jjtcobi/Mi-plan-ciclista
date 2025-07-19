@@ -56,6 +56,22 @@
         .rating-star:hover ~ .rating-star {
             color: #d1d5db;
         }
+        .zone-progress-bar-container {
+            position: relative;
+            overflow: hidden;
+        }
+        .zone-progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+            opacity: 0.6;
+        }
+        .zone-text-content {
+            position: relative;
+            z-index: 10;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -126,14 +142,44 @@
                         </div>
                     </div>
                      <div class="bg-white p-6 rounded-xl shadow-sm">
-                        <h3 class="text-xl font-bold mb-4">Tus Zonas de Entrenamiento (FC Máx.)</h3>
-                        <p class="text-sm text-slate-500 mb-4">Basado en tu Frecuencia Cardíaca Máxima (FC Máx), que debes determinar con una prueba de esfuerzo.</p>
+                        <h3 class="text-xl font-bold mb-4">Distribución del Tiempo en Zonas</h3>
+                        <p class="text-sm text-slate-500 mb-4">Progreso total del tiempo de entrenamiento en cada zona cardíaca.</p>
                         <ul class="space-y-3">
-                            <li class="p-3 bg-blue-100 rounded-lg"><strong class="text-blue-800">Z1 Regenerativo (&lt;65%):</strong> Recuperación activa.</li>
-                            <li class="p-3 bg-green-100 rounded-lg"><strong class="text-green-800">Z2 Resistencia Aeróbica (65-75%):</strong> La zona clave para quemar grasa.</li>
-                            <li class="p-3 bg-yellow-100 rounded-lg"><strong class="text-yellow-800">Z3 Tempo (75-85%):</strong> Ritmo intenso pero sostenible.</li>
-                            <li class="p-3 bg-orange-100 rounded-lg"><strong class="text-orange-800">Z4 Umbral Anaeróbico (85-92%):</strong> Esfuerzo alto, donde las piernas "queman".</li>
-                            <li class="p-3 bg-red-100 rounded-lg"><strong class="text-red-800">Z5 VO2 Máx. (&gt;92%):</strong> Esfuerzos máximos y cortos.</li>
+                            <li id="zone-Z1" class="p-3 bg-blue-100 rounded-lg zone-progress-bar-container">
+                                <div class="zone-progress-bar bg-blue-400" style="width: 0%;"></div>
+                                <div class="zone-text-content flex justify-between items-center">
+                                    <span><strong class="text-blue-800">Z1 Regenerativo:</strong> Recuperación activa.</span>
+                                    <span class="font-bold text-blue-800 text-sm">0%</span>
+                                </div>
+                            </li>
+                             <li id="zone-Z2" class="p-3 bg-green-100 rounded-lg zone-progress-bar-container">
+                                <div class="zone-progress-bar bg-green-400" style="width: 0%;"></div>
+                                <div class="zone-text-content flex justify-between items-center">
+                                    <span><strong class="text-green-800">Z2 Resistencia:</strong> Quema de grasa.</span>
+                                    <span class="font-bold text-green-800 text-sm">0%</span>
+                                </div>
+                            </li>
+                             <li id="zone-Z3" class="p-3 bg-yellow-100 rounded-lg zone-progress-bar-container">
+                                <div class="zone-progress-bar bg-yellow-400" style="width: 0%;"></div>
+                                <div class="zone-text-content flex justify-between items-center">
+                                    <span><strong class="text-yellow-800">Z3 Tempo:</strong> Ritmo intenso sostenible.</span>
+                                    <span class="font-bold text-yellow-800 text-sm">0%</span>
+                                </div>
+                            </li>
+                             <li id="zone-Z4" class="p-3 bg-orange-100 rounded-lg zone-progress-bar-container">
+                                <div class="zone-progress-bar bg-orange-400" style="width: 0%;"></div>
+                                <div class="zone-text-content flex justify-between items-center">
+                                    <span><strong class="text-orange-800">Z4 Umbral:</strong> Esfuerzo alto.</span>
+                                    <span class="font-bold text-orange-800 text-sm">0%</span>
+                                </div>
+                            </li>
+                             <li id="zone-Z5" class="p-3 bg-red-100 rounded-lg zone-progress-bar-container">
+                                <div class="zone-progress-bar bg-red-400" style="width: 0%;"></div>
+                                <div class="zone-text-content flex justify-between items-center">
+                                    <span><strong class="text-red-800">Z5 VO2 Máx:</strong> Esfuerzos máximos.</span>
+                                    <span class="font-bold text-red-800 text-sm">0%</span>
+                                </div>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -401,8 +447,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const navButtons = document.querySelectorAll('.nav-button');
             const contentSections = document.querySelectorAll('.content-section');
-            const DATA_STORAGE_KEY = 'cyclingTrainingData_v5';
-            const EVENT_DATE_KEY = 'cyclingEventDate_v5';
+            const DATA_STORAGE_KEY = 'cyclingTrainingData_v6';
+            const EVENT_DATE_KEY = 'cyclingEventDate_v6';
 
             let weightChart, volumeChart;
             let trainingData = [];
@@ -443,6 +489,27 @@
                 var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
                 var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
                 return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+            }
+
+            function updateZoneDistribution() {
+                const zoneDurations = { Z1: 0, Z2: 0, Z3: 0, Z4: 0, Z5: 0 };
+                let totalTrainingDuration = 0;
+
+                trainingData.forEach(session => {
+                    if (session.zone && session.duration > 0) {
+                        zoneDurations[session.zone] += session.duration;
+                        totalTrainingDuration += session.duration;
+                    }
+                });
+
+                for (const zone in zoneDurations) {
+                    const percentage = totalTrainingDuration > 0 ? (zoneDurations[zone] / totalTrainingDuration) * 100 : 0;
+                    const zoneLi = document.getElementById(`zone-${zone}`);
+                    if (zoneLi) {
+                        zoneLi.querySelector('.zone-progress-bar').style.width = `${percentage}%`;
+                        zoneLi.querySelector('.font-bold').textContent = `${percentage.toFixed(1)}%`;
+                    }
+                }
             }
 
             function updatePhaseInfo(daysTraining) {
@@ -519,6 +586,8 @@
             function updateDashboard() {
                 updateCountdown();
                 renderHistoryTable();
+                updateZoneDistribution();
+
                 if (!trainingData.length) {
                     document.getElementById('total-distance').textContent = `0 km`;
                     document.getElementById('total-duration').textContent = `0 hrs`;
