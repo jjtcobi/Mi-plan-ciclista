@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esquema Visual Colapsable: Neuroaprendizaje y Zettelkasten</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .mindmap-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 24px;
+            overflow-x: auto;
+            position: relative;
+        }
+        .node {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-left-width: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background-color: white;
+            transition: all 0.2s ease-in-out;
+        }
+        .node-l1 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+        }
+        .node-l2 {
+            font-size: 1rem; /* text-base */
+            font-weight: 600; /* font-semibold */
+            margin-left: 24px;
+        }
+        .node-l3 {
+            font-size: 0.9rem;
+            font-weight: 500; /* font-medium */
+            margin-left: 48px;
+            border-left-width: 4px;
+        }
+        .node-l4 {
+            font-size: 0.85rem;
+            margin-left: 72px;
+            border-left-width: 2px;
+            padding: 8px 12px;
+        }
+        
+        /* Estilos para colapsar */
+        .collapsible {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .toggle-icon {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #64748b; /* slate-500 */
+            transition: transform 0.3s ease;
+            padding: 0 8px;
+        }
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow: hidden;
+            max-height: 2000px; /* Suficientemente grande para el contenido */
+            transition: max-height 0.5s ease-in-out, margin-top 0.5s ease-in-out;
+        }
+        .content-wrapper.collapsed {
+            max-height: 0;
+            margin-top: -8px; /* Para compensar el gap cuando está colapsado */
+        }
+        .toggle-icon.collapsed {
+             transform: rotate(-90deg);
+        }
+
+        .connector-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* --- Colores de Ramas --- */
+        .branch-blue.node-l1 { border-color: #3b82f6; color: #1e40af; }
+        .branch-blue.node-l2 { border-color: #60a5fa; }
+        .branch-blue.node-l3 { border-color: #93c5fd; background-color: #eff6ff; }
+        .branch-blue.node-l4 { border-color: #bfdbfe; background-color: #f0f9ff; }
+
+        .branch-green.node-l1 { border-color: #22c55e; color: #15803d; }
+        .branch-green.node-l2 { border-color: #4ade80; }
+        .branch-green.node-l3 { border-color: #86efac; background-color: #f0fdf4; }
+        .branch-green.node-l4 { border-color: #bbf7d0; background-color: #f7fee7; }
+
+        .branch-red.node-l1 { border-color: #ef4444; color: #991b1b; }
+        .branch-red.node-l2 { border-color: #f87171; }
+        .branch-red.node-l3 { border-color: #fca5a5; background-color: #fef2f2; }
+        .branch-red.node-l4 { border-color: #fecaca; background-color: #fff1f2; }
+
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="mindmap-container" class="mindmap-container">
+        <svg id="connector-svg" class="connector-svg"></svg>
+
+        <!-- Rama 1: Neuroplasticidad -->
+        <div id="node-1" class="node node-l1 branch-blue collapsible">
+            <span>Neuroplasticidad</span>
+            <span class="toggle-icon">▾</span>
+        </div>
+        <div class="content-wrapper">
+            <div id="node-1-1" class="node node-l2 branch-blue collapsible">
+                <span>Cómo Cambia el Cerebro</span>
+                <span class="toggle-icon">▾</span>
+            </div>
+            <div class="content-wrapper">
+                <div id="node-1-1-1" class="node node-l3 branch-blue">Cambios Químicos (Memoria a corto plazo)</div>
+                <div id="node-1-1-2" class="node node-l3 branch-blue">Cambios Estructurales (Memoria a largo plazo)</div>
+                 <div class="content-wrapper">
+                    <div id="node-1-1-2-1" class="node node-l4 branch-blue">Ramificación Dendrítica</div>
+                    <div id="node-1-1-2-2" class="node node-l4 branch-blue">Mielinización</div>
+                </div>
+                <div id="node-1-1-3" class="node node-l3 branch-blue">Cambios Funcionales (Redes cerebrales)</div>
+            </div>
+            <div id="node-1-2" class="node node-l2 branch-blue">Neurogénesis</div>
+        </div>
+
+        <!-- Rama 2: Estrategias de Aprendizaje -->
+        <div id="node-2" class="node node-l1 branch-green collapsible">
+            <span>Estrategias para Optimizar el Aprendizaje</span>
+            <span class="toggle-icon">▾</span>
+        </div>
+        <div class="content-wrapper">
+            <div id="node-2-1" class="node node-l2 branch-green collapsible">
+                <span>Aprendizaje Activo y Práctica Deliberada</span>
+                <span class="toggle-icon">▾</span>
+            </div>
+            <div class="content-wrapper">
+                <div id="node-2-1-1" class="node node-l3 branch-green">Explicar lo aprendido (Téc. Feynman)</div>
+            </div>
+            <div id="node-2-2" class="node node-l2 branch-green collapsible">
+                <span>Repetición Espaciada y Fragmentación</span>
+                <span class="toggle-icon">▾</span>
+            </div>
+             <div class="content-wrapper">
+                <div id="node-2-2-1" class="node node-l3 branch-green">Repetición Espaciada</div>
+            </div>
+            <div id="node-2-3" class="node node-l2 branch-green">Salud Física y Bienestar</div>
+            <div id="node-2-4" class="node node-l2 branch-green">Entorno y Emociones</div>
+        </div>
+
+        <!-- Rama 3: Zettelkasten -->
+        <div id="node-3" class="node node-l1 branch-red collapsible">
+            <span>Método Zettelkasten</span>
+            <span class="toggle-icon">▾</span>
+        </div>
+        <div class="content-wrapper">
+            <div id="node-3-1" class="node node-l2 branch-red collapsible">
+                <span>Principios Clave</span>
+                <span class="toggle-icon">▾</span>
+            </div>
+            <div class="content-wrapper">
+                <div id="node-3-1-1" class="node node-l3 branch-red">Atomicidad</div>
+                <div id="node-3-1-2" class="node node-l3 branch-red">Conectividad (Enlace)</div>
+                <div id="node-3-1-3" class="node node-l3 branch-red">Palabras Propias y Referencias</div>
+                <div id="node-3-1-4" class="node node-l3 branch-red">Revisión y Aplicación</div>
+            </div>
+            <div id="node-3-2" class="node node-l2 branch-red collapsible">
+                <span>Implementación Digital</span>
+                <span class="toggle-icon">▾</span>
+            </div>
+            <div class="content-wrapper">
+                <div id="node-3-2-1" class="node node-l3 branch-red">Vinculación Bidireccional y Gráfica</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const svg = document.getElementById('connector-svg');
+            const container = document.getElementById('mindmap-container');
+
+            function drawConnector(startId, endId) {
+                const startNode = document.getElementById(startId);
+                const endNode = document.getElementById(endId);
+
+                if (!startNode || !endNode) {
+                    console.error(`Could not find node: ${startId} or ${endId}`);
+                    return;
+                }
+                
+                // Si alguno de los nodos o sus padres está colapsado, no dibujar la línea
+                if (startNode.offsetParent === null || endNode.offsetParent === null) {
+                    return;
+                }
+
+                const containerRect = container.getBoundingClientRect();
+                const startRect = startNode.getBoundingClientRect();
+                const endRect = endNode.getBoundingClientRect();
+
+                const x1 = startRect.right - containerRect.left;
+                const y1 = startRect.top - containerRect.top + startRect.height / 2;
+                const x2 = endRect.left - containerRect.left;
+                const y2 = endRect.top - containerRect.top + endRect.height / 2;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', '#ef4444');
+                line.setAttribute('stroke-width', '2');
+                line.setAttribute('stroke-dasharray', '5, 5');
+                svg.appendChild(line);
+            }
+            
+            function drawAllConnectors() {
+                svg.innerHTML = '';
+                
+                const connections = [
+                    { start: 'node-2-1-1', end: 'node-3-1-3' },
+                    { start: 'node-2-2-1', end: 'node-3-1-4' },
+                    { start: 'node-1-1-2', end: 'node-3-1-2' },
+                    { start: 'node-1-1-3', end: 'node-3-2-1' }
+                ];
+
+                connections.forEach(conn => drawConnector(conn.start, conn.end));
+            }
+
+            // Lógica para colapsar/expandir
+            const collapsibles = document.querySelectorAll('.collapsible');
+            collapsibles.forEach(collapsible => {
+                collapsible.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('.toggle-icon');
+                    
+                    if (content && content.classList.contains('content-wrapper')) {
+                        content.classList.toggle('collapsed');
+                        icon.classList.toggle('collapsed');
+                        
+                        // Redibujar las líneas después de la animación
+                        setTimeout(drawAllConnectors, 500); 
+                    }
+                });
+            });
+
+            // Dibujo inicial y al redimensionar
+            drawAllConnectors();
+            window.addEventListener('resize', drawAllConnectors);
+        });
+    </script>
+</body>
+</html>
